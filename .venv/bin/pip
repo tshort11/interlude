@@ -1,4 +1,4 @@
-#!/Users/tamikashort/app/.venv/bin/python3.12
+#!/Users/tamikashort/Documents/GitHub/interlude/.venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
