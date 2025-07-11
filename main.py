@@ -1,16 +1,24 @@
 import json
 import os
+import base64
 import requests
+from dotenv import load_dotenv
 from rich.console import Console
 from colorama import Fore, Back, Style
 from prettytable import PrettyTable
+
 from classes.user import User
 from classes.album import Album
 from classes.song import Song
 from classes.artist import Artist  
 from classes.spotify_api import SpotifyAPI
+load_dotenv()
+
+client_id = os.getenv("SPOTIFY_CLIENT_ID")
+client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
 
 users = {}
+
 
 def load_users(filename='users.json'):
     try:
@@ -122,8 +130,13 @@ def account_setup():
             print("Invalid choice. Please try again.")
 
 def refresh_access_token(refresh_token):
-    import requests
     try:
+        client_id = os.getenv("SPOTIFY_CLIENT_ID")
+        client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
+
+        if not client_id or not client_secret:
+            raise ValueError("Spotify client ID or secret not set in environment variables.")
+
         url = 'https://accounts.spotify.com/api/token'
         headers = {
             'Authorization': 'Basic ' + base64.b64encode(f'{client_id}:{client_secret}'.encode()).decode()
@@ -133,8 +146,9 @@ def refresh_access_token(refresh_token):
             'refresh_token': refresh_token
         }
         response = requests.post(url, headers=headers, data=payload)
-        response.raise_for_status()  # Raises HTTPError if status is 4xx or 5xx
+        response.raise_for_status()
         return response.json().get('access_token')
+
     except requests.exceptions.RequestException as e:
         print(f"Failed to refresh token: {e}")
         return None
