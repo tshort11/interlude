@@ -2,10 +2,11 @@ import json
 import os
 import base64
 import requests
-from dotenv import load_dotenv
-from rich.console import Console
+from dotenv import load_dotenv # type: ignore
+import rich.console
+from rich.console import Console  
 from colorama import Fore, Back, Style
-from prettytable import PrettyTable
+from prettytable import PrettyTable 
 
 from classes.user import User
 from classes.album import Album
@@ -13,6 +14,15 @@ from classes.song import Song
 from classes.artist import Artist  
 from classes.spotify_api import SpotifyAPI
 load_dotenv()
+import sys
+
+def safe_input(prompt):
+    user_input = input(prompt)
+    if user_input.lower() == 'exit':
+        print("Exiting... Goodbye! 👋")
+        sys.exit(0)
+    return user_input
+
 
 client_id = os.getenv("SPOTIFY_CLIENT_ID")
 client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
@@ -83,20 +93,21 @@ def login(username, password):
 
 def account_setup():
     global users
-    print("\nWelcome to" + Style.BRIGHT + " interlude!")
+    print("\nWelcome " + Style.BRIGHT + " interlude!")
     print(Style.RESET_ALL)
+    print("You can type 'exit' anytime to quit.")
 
     while True:
         print("1. Create Account")
         print("2. Login")
         print("3. Exit")
 
-        choice = input("Enter your choice (1/2/3): ")
+        choice = safe_input("Enter your choice (1/2/3): ")
 
         if choice == '1':
             try:
-                username = input("Enter a username: ")
-                password = input("Enter a password: ")
+                username = safe_input("Enter a username: ")
+                password = safe_input("Enter a password: ")
                 user_id = len(users) + 1
                 user = User(user_id, username, 'user@example.com', password)
                 create_account(username, password)
@@ -108,8 +119,8 @@ def account_setup():
 
         elif choice == '2':
             try:
-                username = input("Enter your username: ")
-                password = input("Enter your password: ")
+                username = safe_input("Enter your username: ")
+                password = safe_input("Enter your password: ")
                 if login(username, password):
                     user = users.get(username)
                     if user:
@@ -124,10 +135,11 @@ def account_setup():
 
         elif choice == '3':
             print("Goodbye!")
-            break
+            sys.exit(0)
 
         else:
             print("Invalid choice. Please try again.")
+
 
 def refresh_access_token(refresh_token):
     try:
