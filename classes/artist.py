@@ -1,5 +1,5 @@
 class Artist:
-    def __init__(self, id, name, genre):
+    def __init__(self, id, name, genre=None):
         self.id = id
         self.name = name
         self.genre = genre
@@ -9,9 +9,10 @@ class Artist:
     
     def to_dict(self):
         return {
-            'title': self.title,
-            'artist': self.artist,
-            'release_date': self.release_date
+            'id': self.id,
+            'name': self.name,
+            'genre': self.genre
         }
+
 
     

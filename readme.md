@@ -11,7 +11,8 @@ This application allows users to discover and manage their favorite music, album
 
 ## Instilation 
 ```
-pip install -r requriements.txt
+pip3 install -r requirements.txt
+
 ```
 
 ## Libraries 

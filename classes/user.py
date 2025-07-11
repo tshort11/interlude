@@ -1,38 +1,39 @@
 import json
+from typing import List
 
 class User:
-    def __init__(self, user_id, username, email, password):
+    MAX_FAVORITES = 5
+
+    def __init__(self, user_id: int, username: str, email: str, password: str):
         self.user_id = user_id
         self.username = username
         self.email = email
-        self.password = password
-        self.favorite_albums = []
-        self.favorite_songs = []
-        self.favorite_artists = []
+        self.password = password  # TODO: Hash this for security
+        self.favorite_albums: List = []
+        self.favorite_songs: List = []
+        self.favorite_artists: List = []
 
-    def check_password(self, password):
+    def check_password(self, password: str) -> bool:
+        # TODO: Replace with hashed password check
         return self.password == password
 
     def add_favorite_album(self, album):
-        if len(self.favorite_albums) < 5:
-            self.favorite_albums.append(album)
-            print(f"Album '{album.title}' added to {self.username}'s favorites.")
-        else:
-            print("You have already added 5 favorite albums.")
+        if len(self.favorite_albums) >= self.MAX_FAVORITES:
+            raise ValueError(f"You can only add up to {self.MAX_FAVORITES} favorite albums.")
+        self.favorite_albums.append(album)
+        print(f"Album '{album.title}' added to {self.username}'s favorites.")
 
     def add_favorite_song(self, song):
-        if len(self.favorite_songs) < 5:
-            self.favorite_songs.append(song)
-            print(f"Song '{song.title}' added to {self.username}'s favorites.")
-        else:
-            print("You have already added 5 favorite songs.")
+        if len(self.favorite_songs) >= self.MAX_FAVORITES:
+            raise ValueError(f"You can only add up to {self.MAX_FAVORITES} favorite songs.")
+        self.favorite_songs.append(song)
+        print(f"Song '{song.title}' added to {self.username}'s favorites.")
 
     def add_favorite_artist(self, artist):
-        if len(self.favorite_artists) < 5:
-            self.favorite_artists.append(artist)
-            print(f"Artist '{artist.name}' added to {self.username}'s favorites.")
-        else:
-            print("You have already added 5 favorite artists.")
+        if len(self.favorite_artists) >= self.MAX_FAVORITES:
+            raise ValueError(f"You can only add up to {self.MAX_FAVORITES} favorite artists.")
+        self.favorite_artists.append(artist)
+        print(f"Artist '{artist.name}' added to {self.username}'s favorites.")
 
     def to_dict(self):
         return {

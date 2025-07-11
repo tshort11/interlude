@@ -1,112 +1,67 @@
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
-import requests
-import base64 
+from spotipy.oauth2 import SpotifyClientCredentials
+from typing import Optional, List, Dict
 
 class SpotifyAPI:
-    def __init__(self, client_id, client_secret, redirect_uri):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.redirect_uri = redirect_uri
-        self.scope = "user-top-read"
-        self.sp = self.authenticate()
-        self.access_token = None
-        self.refresh_token = None
-        self.token_expires = None 
+    def __init__(self, client_id: str, client_secret: str, redirect_uri: Optional[str] = None):
+        self.sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
+            client_id=client_id,
+            client_secret=client_secret
+        ))
 
-    def refresh_access_token(self):
-        if self.refresh_token:
-            url = 'https://accounts.spotify.com/api/token'
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
-            payload = {
-                'grant_type': 'refresh_token',
-                'refresh_token': self.refresh_token,
-                'client_id': self.client_id,
-                'client_secret': self.client_secret,
-            }
-            response = requests.post(url, headers=headers, data=payload)
-            if response.status_code == 200:
-                data = response.json()
-                self.access_token = data['access_token']
-                self.token_expires = data['expires_in']
-                print("Access token refreshed successfully.")
-            else:
-                print("Failed to refresh access token:", response.json())
-        else:
-            print("No refresh token available.")
+    def search_album(self, album_name: str) -> Dict:
+        try:
+            result = self.sp.search(q=f"album:{album_name}", type='album', limit=1)
+            if result['albums']['items']:
+                album = result['albums']['items'][0]
+                return {
+                    'title': album['name'],
+                    'artist': album['artists'][0]['name'],
+                    'release_date': album['release_date']
+                }
+        except Exception as e:
+            print(f"Error searching album: {e}")
+        return {}
 
-    def refresh_token_if_expired(self):
-        if self.token_expires and (time.time() > self.token_expires):
-            self.refresh_access_token()
-            # Set the token expiry time
-            self.token_expires = time.time() + 3600 
+    def search_song(self, song_name: str) -> Dict:
+        try:
+            result = self.sp.search(q=song_name, type='track', limit=1)
+            if result['tracks']['items']:
+                track = result['tracks']['items'][0]
+                return {
+                    'title': track['name'],
+                    'artist': track['artists'][0]['name'],
+                    'album': track['album']['name'],
+                    'duration_ms': track['duration_ms']
+                }
+        except Exception as e:
+            print(f"Error searching song: {e}")
+        return {}
 
-    def search_album(self, album_name):
-        self.refresh_token_if_expired()
-        headers = {
-            'Authorization': f'Bearer {self.access_token}'
-        }
+    def search_artist(self, artist_name: str) -> Dict:
+        try:
+            result = self.sp.search(q=artist_name, type='artist', limit=1)
+            if result['artists']['items']:
+                artist = result['artists']['items'][0]
+                return {
+                    'id': artist['id'],
+                    'name': artist['name'],
+                    'genre': artist['genres'][0] if artist['genres'] else 'Unknown'
+                }
+        except Exception as e:
+            print(f"Error searching artist: {e}")
+        return {}
 
-    def search_album(self, album_name):
-        result = self.sp.search(q='album:' + album_name, type='album')
-        albums = result['albums']['items']
-        if albums:
-            album = albums[0]
-            return {
+    def get_new_releases(self, limit: int = 5) -> List[Dict]:
+        try:
+            result = self.sp.new_releases(limit=limit)
+            albums = result['albums']['items']
+            return [{
                 'title': album['name'],
                 'artist': album['artists'][0]['name'],
-                'release_date': album['release_date'],
-                'total_tracks': album['total_tracks']
-            }
-        return None
+                'release_date': album['release_date']
+            } for album in albums]
+        except Exception as e:
+            print(f"Error fetching new releases: {e}")
+            return []
 
-    def search_song(self, song_name):
-        result = self.sp.search(q='track:' + song_name, type='track')
-        tracks = result['tracks']['items']
-        if tracks:
-            track = tracks[0]
-            return {
-                'title': track['name'],
-                'artist': track['artists'][0]['name'],
-                'album': track['album']['name'],
-                'duration_ms': track['duration_ms']
-            }
-        return None
-
-    def search_artist(self, artist_name):
-        self.refresh_token_if_expired()
-        try:
-            result = self.sp.search(q='artist:' + artist_name, type='artist')
-            return result['artists']['items'][0] if result['artists']['items'] else None
-        except SpotifyException as e:
-            print("Error searching for artist:", e)
-            return None
-    
-    def authenticate(self):
-        sp_oauth = SpotifyOAuth(client_id=self.client_id, client_secret=self.client_secret,redirect_uri=self.redirect_uri, scope=self.scope)
-        token_info = sp_oauth.get_access_token(as_dict=False)
-        return spotipy.Spotify(auth=token_info)
-
-    def get_new_releases(self):
-        results = self.sp.new_releases(limit=10)
-        return results['albums']['items']
-
-    def get_top_tracks(self):
-        results = self.sp.current_user_top_tracks(limit=10)
-        return results['items']
-
-def display_new_releases(releases):
-    table = PrettyTable()
-    table.field_names = ["Album Name", "Artist(s)", "Release Date", "URL"]
-
-    for album in releases:
-        album_name = album['name']
-        artists = ", ".join([artist['name'] for artist in album['artists']])
-        release_date = album['release_date']
-        url = album['external_urls']['spotify']
-
-        table.add_row([album_name, artists, release_date, url])
-
-    print(table)

@@ -8,15 +8,18 @@ class Song:
         self.release_date = release_date  
 
     def __repr__(self):
-        return (f"Song(id={self.song_id}, title={self.title}, "
+        return (f"Song(id={self.id}, title={self.title}, "
                 f"artist={self.artist}, album={self.album}, duration={self.duration_ms} ms)")
+
     def to_dict(self):
         return {
-        'id': self.id,
-        'title': self.title,
-        'artist': self.artist,
-        'album': self.album,
-        'duration_ms': self.duration_ms,
-    }
+            'id': self.id,
+            'title': self.title,
+            'artist': self.artist,
+            'album': self.album,
+            'duration_ms': self.duration_ms,
+            'release_date': self.release_date
+        }
+
 
 
